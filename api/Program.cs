@@ -23,10 +23,11 @@ if (builder.Environment.IsProduction())
 {
     var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
     var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
-    var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
-    var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
+    //var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
+    var keyVaultClientSecret = builder.Configuration["ClientSecret"];
+var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
 
-    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
+    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.ToString());
 
     builder.Configuration.AddAzureKeyVault(
        new Uri(keyVaultURL.Value), credential
