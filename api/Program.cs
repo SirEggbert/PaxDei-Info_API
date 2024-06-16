@@ -1,14 +1,16 @@
 using api.Data;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
 
-builder.Services.AddDbContext<AppDbContext>(
-    options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
+builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -16,6 +18,34 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
+
+if (builder.Environment.IsProduction())
+{
+    var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
+    var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
+    var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
+    var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
+
+    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
+
+    builder.Configuration.AddAzureKeyVault(
+       new Uri(keyVaultURL.Value), credential
+       );
+
+    var client = new SecretClient(new Uri(keyVaultURL.Value!.ToString()), credential);
+    var conStr = client.GetSecret("paxdei-db-server").Value.Value.ToString();
+
+    builder.Services.AddDbContext<AppDbContext>(options =>
+    {
+        options.UseSqlServer(conStr);
+    });
+}
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddDbContext<AppDbContext>(
+        options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
+}
 
 var app = builder.Build();
 
