@@ -29,11 +29,11 @@ jobs:
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Create secrets.json
-        shell: bash
+        shell: pwsh
         env:
           super_secret: ${{ secrets.DBSECRET }}
         run: |
-            echo '{ "DBSECRET": "$super_secret" }' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
+            echo '{ "DBSECRET": "' + $(super_secret) + '"}' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
             
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
