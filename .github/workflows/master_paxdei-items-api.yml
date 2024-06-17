@@ -21,8 +21,6 @@ jobs:
         with:
           dotnet-version: '8.x'
           include-prerelease: true
-        env: # Or as an environment variable
-          super_secret: ${{ secrets.DBSECRET }}
 
       - name: Build with dotnet
         run: dotnet build --configuration Release
@@ -31,8 +29,10 @@ jobs:
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Create secrets.json
+        env:
+          super_secret: ${{ secrets.DBSECRET }}
         run: |
-          echo '{ "DBSECRET": "${{ env.DBSECRET }}" }' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
+          echo '{ "DBSECRET": "$super_secret" }' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
             
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
