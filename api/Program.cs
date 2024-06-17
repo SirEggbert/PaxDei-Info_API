@@ -20,12 +20,11 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-if (builder.Environment.IsDevelopment())
+if (builder.Environment.IsProduction())
 {
     var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
     var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
     var keyVaultClientSecret = builder.Configuration.GetSection("DBSECRET");
-    //var keyVaultClientSecret = builder.Configuration["ClientSecret"];
     var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
 
     var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
@@ -43,7 +42,7 @@ if (builder.Environment.IsDevelopment())
     });
 }
 
-if (builder.Environment.IsProduction())
+if (builder.Environment.IsDevelopment())
 {
     builder.Services.AddDbContext<AppDbContext>(
         options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
