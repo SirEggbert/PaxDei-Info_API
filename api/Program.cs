@@ -20,10 +20,10 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-    var keyVaultURL = new Uri(builder.Configuration.GetSection("KeyVault:keyVaultURL").Value!);
+    var keyVaultURL = new Uri(builder.Configuration.GetSection("KeyVault:KeyVaultURL").Value!);
     var azureCredential = new DefaultAzureCredential();
     builder.Configuration.AddAzureKeyVault(keyVaultURL, azureCredential);
-    var conStr = builder.Configuration.GetSection("paxdei-db-server").Value;
+    var conStr = builder.Configuration.GetSection("paxdei-db-constr").Value;
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
         options.UseSqlServer(conStr);
