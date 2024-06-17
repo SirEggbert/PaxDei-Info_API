@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Configuration.AddJsonFile("Secrets.json", false, true);
+//builder.Configuration.AddJsonFile("Secrets.json", false, true);
 
 // Add services to the container.
 
