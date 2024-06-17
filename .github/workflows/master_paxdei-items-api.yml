@@ -30,7 +30,7 @@ jobs:
 
       - name: Create secrets.json
         run: |
-          echo "{\"KeyVault\": {\"ClientSecret\": \"${{ secrets.DBSECRET }}\"}}" > ${{ runner.temp }}/myapp/Secrets.json
+          echo "{\"KeyVault\": {\"DBSECRET\": \"${{ secrets.DBSECRET }}\"}}" > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
