@@ -33,7 +33,7 @@ jobs:
         env:
           super_secret: ${{ secrets.DBSECRET }}
         run: |
-            echo '{ "DBSECRET": "' + $(super_secret) + '"}' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
+            echo '{ "DBSECRET": "' + ${{ secrets.DBSECRET }} + '"}' > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
             
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
