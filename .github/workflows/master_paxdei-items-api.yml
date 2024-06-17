@@ -29,7 +29,7 @@ jobs:
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
       - name: Create secrets.json
-        run:
+        run: |
           echo "{\"KeyVault\": {\"DBSECRET\": \"${{ secrets.DBSECRET }}\"}}" > ${{env.DOTNET_ROOT}}/myapp/Secrets.json
             
       - name: Upload artifact for deployment job
