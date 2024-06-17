@@ -20,33 +20,31 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-if (builder.Environment.IsProduction())
-{
-    var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
-    var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
-    var keyVaultClientSecret = builder.Configuration.GetSection("DBSECRET");
-    var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
-
-    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
-
-    builder.Configuration.AddAzureKeyVault(
-       new Uri(keyVaultURL.Value), credential
-       );
-
-    var client = new SecretClient(new Uri(keyVaultURL.Value!.ToString()), credential);
-    var conStr = client.GetSecret("paxdei-db-server").Value.Value.ToString();
-
+    var keyVaultURL = new Uri(builder.Configuration.GetSection("KeyVault:keyVaultURL").Value!);
+    var azureCredential = new DefaultAzureCredential();
+    builder.Configuration.AddAzureKeyVault(keyVaultURL, azureCredential);
+    var conStr = builder.Configuration.GetSection("paxdei-db-server").Value;
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
         options.UseSqlServer(conStr);
     });
-}
 
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddDbContext<AppDbContext>(
-        options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
-}
+
+    //var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
+    //var keyVaultClientSecret = builder.Configuration.GetSection("DBSECRET");
+    //var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
+
+   // var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
+
+
+    //var client = new SecretClient(new Uri(keyVaultURL.Value!.ToString()), credential);
+
+
+//if (builder.Environment.IsDevelopment())
+//{
+//    builder.Services.AddDbContext<AppDbContext>(
+//        options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
+//}
 
 var app = builder.Build();
 
