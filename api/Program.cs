@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("secrets.json",false);
 
 // Add services to the container.
 
@@ -19,33 +20,29 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-if (builder.Environment.IsProduction())
+var useLocalDatabase = builder.Configuration.GetValue<bool>("UseLocalDatabase");
+var keyVaultURL = builder.Configuration["KeyVault:keyVaultURL"];
+var keyVaultClientId = builder.Configuration["KeyVault:ClientId"];
+var keyVaultClientSecret = builder.Configuration["KeyVault:ClientSecret"];
+var keyVaultDirectoryID = builder.Configuration["KeyVault:DirectoryID"];
+
+if (useLocalDatabase)
 {
-    var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
-    var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
-    //var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
-    var keyVaultClientSecret = builder.Configuration["ClientSecret"];
-var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
+    builder.Services.AddDbContext<AppDbContext>(
+    options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
+}
+else { 
+    var credential = new ClientSecretCredential(keyVaultDirectoryID, keyVaultClientId, keyVaultClientSecret);
 
-    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.ToString());
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultURL), credential);
 
-    builder.Configuration.AddAzureKeyVault(
-       new Uri(keyVaultURL.Value), credential
-       );
-
-    var client = new SecretClient(new Uri(keyVaultURL.Value!.ToString()), credential);
+    var client = new SecretClient(new Uri(keyVaultURL), credential);
     var conStr = client.GetSecret("paxdei-db-server").Value.Value.ToString();
 
     builder.Services.AddDbContext<AppDbContext>(options =>
     {
         options.UseSqlServer(conStr);
     });
-}
-
-if (builder.Environment.IsDevelopment())
-{
-    builder.Services.AddDbContext<AppDbContext>(
-        options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
 }
 
 var app = builder.Build();
