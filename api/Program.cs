@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Configuration.AddJsonFile("Secrets.json", false, true);
 
 // Add services to the container.
 
@@ -19,15 +20,15 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-if (builder.Environment.IsProduction())
+if (builder.Environment.IsDevelopment())
 {
     var keyVaultURL = builder.Configuration.GetSection("KeyVault:keyVaultURL");
     var keyVaultClientId = builder.Configuration.GetSection("KeyVault:ClientId");
-    //var keyVaultClientSecret = builder.Configuration.GetSection("KeyVault:ClientSecret");
-    var keyVaultClientSecret = builder.Configuration["ClientSecret"];
-var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
+    var keyVaultClientSecret = builder.Configuration.GetSection("DBSECRET");
+    //var keyVaultClientSecret = builder.Configuration["ClientSecret"];
+    var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID");
 
-    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.ToString());
+    var credential = new ClientSecretCredential(keyVaultDirectoryID.Value!.ToString(), keyVaultClientId.Value!.ToString(), keyVaultClientSecret.Value!.ToString());
 
     builder.Configuration.AddAzureKeyVault(
        new Uri(keyVaultURL.Value), credential
@@ -42,7 +43,7 @@ var keyVaultDirectoryID = builder.Configuration.GetSection("KeyVault:DirectoryID
     });
 }
 
-if (builder.Environment.IsDevelopment())
+if (builder.Environment.IsProduction())
 {
     builder.Services.AddDbContext<AppDbContext>(
         options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
