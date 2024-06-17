@@ -20,24 +20,25 @@ builder.Services.AddSwaggerGen(c =>
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "PaxDei-Info API", Version = "v1" });
 });
 
-var useLocalDatabase = builder.Configuration.GetValue<bool>("UseLocalDatabase");
-var keyVaultURL = builder.Configuration["KeyVault:keyVaultURL"];
-var keyVaultClientId = builder.Configuration["KeyVault:ClientId"];
-var keyVaultClientSecret = builder.Configuration["KeyVault:ClientSecret"];
-var keyVaultDirectoryID = builder.Configuration["KeyVault:DirectoryID"];
+var useLocalDatabase = builder.Configuration.GetValue("UseLocalDatabase",false);
 
 if (useLocalDatabase)
 {
     builder.Services.AddDbContext<AppDbContext>(
     options => options.UseSqlServer(builder.Configuration.GetConnectionString("dbConnectionString")));
 }
-else { 
+else {
+    var keyVaultURL = builder.Configuration["KeyVault:keyVaultURL"];
+    var keyVaultClientId = builder.Configuration["KeyVault:ClientId"];
+    var keyVaultClientSecret = builder.Configuration["KeyVault:ClientSecret"];
+    var keyVaultDirectoryID = builder.Configuration["KeyVault:DirectoryID"];
+
     var credential = new ClientSecretCredential(keyVaultDirectoryID, keyVaultClientId, keyVaultClientSecret);
 
     builder.Configuration.AddAzureKeyVault(new Uri(keyVaultURL), credential);
 
     var client = new SecretClient(new Uri(keyVaultURL), credential);
-    var conStr = client.GetSecret("paxdei-db-server").Value.Value.ToString();
+    var conStr = client.GetSecret("paxdei-db-server").Value.Value;
 
     builder.Services.AddDbContext<AppDbContext>(options =>
     {

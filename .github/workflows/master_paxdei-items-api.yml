@@ -28,6 +28,10 @@ jobs:
       - name: dotnet publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
 
+      - name: Create secrets.json
+        run: |
+          echo "{\"KeyVault\": {\"ClientSecret\": \"${{ secrets.MY_SECRET }}\"}}" > ${{ runner.temp }}/myapp/secrets.json
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
         with:
